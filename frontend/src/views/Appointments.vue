@@ -103,17 +103,17 @@ const formatTime = (timeStr) => {
 }
 
 const getServiceName = (service) => {
-  return service?.name || 'Serviço'
+  return service?.name || 'Service'
 }
 
 const getStatusLabel = (status) => {
   const labels = {
-    'scheduled': 'Agendado',
-    'confirmed': 'Confirmado',
-    'in_progress': 'Em Andamento',
-    'completed': 'Concluído',
-    'cancelled': 'Cancelado',
-    'no_show': 'Não Compareceu'
+    'scheduled': 'Scheduled',
+    'confirmed': 'Confirmed',
+    'in_progress': 'In Progress',
+    'completed': 'Completed',
+    'cancelled': 'Cancelled',
+    'no_show': 'No Show'
   }
   return labels[status] || status
 }
