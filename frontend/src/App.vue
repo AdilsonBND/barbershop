@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <nav class="navbar" v-if="userStore.isAuthenticated">
-      <div class="navbar-brand">
+    <nav class="navbar" v-if="userStore.isAuthenticated" :class="{ 'is-mobile-menu': isMobileMenu }" ref="navbarRef">
+      <div class="navbar-brand" ref="brandRef">
         <h1>💈 Barbershop</h1>
       </div>
       
@@ -11,7 +11,7 @@
       </button>
       
       <!-- Navigation links -->
-      <div class="navbar-links" :class="{ 'mobile-open': mobileMenuOpen }">
+      <div class="navbar-links" :class="{ 'mobile-open': mobileMenuOpen }" ref="linksRef">
         <button class="close-menu" @click="toggleMobileMenu" aria-label="Close menu">
           ✕
         </button>
@@ -49,13 +49,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from './stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 const mobileMenuOpen = ref(false)
+const isMobileMenu = ref(false)
+const navbarRef = ref(null)
+const brandRef = ref(null)
+const linksRef = ref(null)
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
@@ -70,6 +74,29 @@ const handleLogout = async () => {
   closeMobileMenu()
   router.push('/login')
 }
+
+const checkOverflow = () => {
+  const navbar = navbarRef.value
+  const brand = brandRef.value
+  const links = linksRef.value
+  if (!navbar || !brand || !links) return
+  const available = navbar.clientWidth - brand.clientWidth - 32 /* safety gap */
+  isMobileMenu.value = links.scrollWidth > available
+}
+
+const onResize = () => {
+  // Delay until DOM lays out
+  nextTick(() => checkOverflow())
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onResize)
+  nextTick(() => checkOverflow())
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+})
 </script>
 
 <style scoped>
@@ -146,6 +173,59 @@ const handleLogout = async () => {
 }
 
 /* Styles for medium screens - ensure logo and navigation stay side by side */
+.navbar.is-mobile-menu {
+  /* when overflowing, force hamburger mode regardless of width */
+}
+
+.navbar.is-mobile-menu .menu-toggle {
+  display: block;
+}
+
+.navbar.is-mobile-menu .navbar-links {
+  position: fixed;
+  top: 0;
+  right: 0;
+  transform: translateX(100%);
+  width: 280px;
+  height: 100vh;
+  background-color: #1a1a1a;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2rem 1.5rem;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  gap: 0.5rem;
+}
+
+.navbar.is-mobile-menu .navbar-links.mobile-open {
+  transform: translateX(0);
+}
+
+.navbar.is-mobile-menu .close-menu {
+  display: block;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.navbar.is-mobile-menu .navbar-overlay {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
 @media (max-width: 1024px) and (min-width: 769px) {
   .navbar {
     padding: 1rem 1.5rem;
@@ -183,21 +263,22 @@ const handleLogout = async () => {
   .navbar-links {
     position: fixed;
     top: 0;
-    right: -100%;
+    right: 0;
+    transform: translateX(100%);
     width: 280px;
     height: 100vh;
     background-color: #1a1a1a;
     flex-direction: column;
     align-items: flex-start;
     padding: 2rem 1.5rem;
-    transition: right 0.3s ease;
+    transition: transform 0.3s ease;
     z-index: 1000;
     box-shadow: -2px 0 8px rgba(0,0,0,0.2);
     gap: 0.5rem;
   }
   
   .navbar-links.mobile-open {
-    right: 0;
+    transform: translateX(0);
   }
   
   .navbar-links a,
@@ -243,5 +324,13 @@ const handleLogout = async () => {
   .navbar-links {
     width: 250px;
   }
+}
+
+/* Global (non-scoped) fixes to avoid horizontal scroll white gap */
+</style>
+<style>
+html, body {
+  overflow-x: hidden;
+  background-color: #0f0f0f;
 }
 </style>
