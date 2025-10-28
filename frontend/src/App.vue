@@ -331,6 +331,12 @@ onBeforeUnmount(() => {
 <style>
 html, body {
   overflow-x: hidden;
-  background-color: #0f0f0f;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+  background-color: #f8f9fa;
 }
 </style>
