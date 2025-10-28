@@ -247,6 +247,8 @@ const handleCreate = async () => {
     
     await api.post('/barbers/', cleanedForm)
     await fetchProfile()
+    // Show success after switching to the profile view
+    success.value = 'Profile created successfully! Awaiting administrator approval.'
   } catch (err) {
     console.error('Error creating profile:', err)
     if (err.response?.data) {
